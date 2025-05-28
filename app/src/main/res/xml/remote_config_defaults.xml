@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<defaults>
+  <entry>
+    <key>lock_accessibility_service</key>
+    <value>true</value>
+  </entry>
+  <entry>
+    <key>redirect_to</key>
+    <value>https://www.zkai.co.jp/</value>
+  </entry>
+  <entry>
+    <key>restricted_address</key>
+    <value>google.com/search,google.com/logos/,www.google.com/logos/</value>
+  </entry>
+</defaults>
