@@ -87,7 +87,7 @@ class URLFilterService : AccessibilityService() {
                 eventTypes = AccessibilityEvent.TYPES_ALL_MASK
                 packageNames = packageNames()
                 feedbackType = AccessibilityServiceInfo.FEEDBACK_VISUAL
-                notificationTimeout = 300
+                notificationTimeout = 1000
                 flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
                     AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
             }
@@ -187,7 +187,7 @@ class URLFilterService : AccessibilityService() {
             val changeTypes = event.contentChangeTypes
             val delta = eventTime - lastRecordedTime!!
             if (changeTypes and CHECK_EVENT == CHECK_EVENT) {
-                if (delta >= 1000) {
+                if (delta >= 800) {
                     val remoteConfig = Firebase.remoteConfig
                     remoteConfig.activate()
                     previousUrlDetections[detectionId] = eventTime
