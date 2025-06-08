@@ -46,8 +46,6 @@ const val REDIRECT_TO = "redirect_to"
 // this is the key used for remote config to fetch lock accessibility service
 const val LOCK_ACCESSIBILITY_SERVICE = "lock_accessibility_service"
 
-const val CHECK_EVENT = AccessibilityEvent.CONTENT_CHANGE_TYPE_SUBTREE + AccessibilityEvent.CONTENT_CHANGE_TYPE_TEXT
-
 class URLFilterService : AccessibilityService() {
     private lateinit var firebaseAnalytics: FirebaseAnalytics
     private val previousUrlDetections: HashMap<String, Long> = HashMap()
@@ -186,8 +184,11 @@ class URLFilterService : AccessibilityService() {
             // some kind of redirect throttling
             val changeTypes = event.contentChangeTypes
             val delta = eventTime - lastRecordedTime!!
-            if (changeTypes and CHECK_EVENT == CHECK_EVENT) {
-                if (delta >= 800) {
+            Log.d(TAG, "event: $event")
+            if (changeTypes == AccessibilityEvent.CONTENT_CHANGE_TYPE_SUBTREE ||
+                changeTypes == AccessibilityEvent.CONTENT_CHANGE_TYPE_TEXT
+            ) {
+                if (delta >= 500) {
                     val remoteConfig = Firebase.remoteConfig
                     remoteConfig.activate()
                     previousUrlDetections[detectionId] = eventTime
