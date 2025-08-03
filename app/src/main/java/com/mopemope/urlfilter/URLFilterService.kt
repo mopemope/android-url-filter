@@ -46,6 +46,8 @@ const val REDIRECT_TO = "redirect_to"
 // this is the key used for remote config to fetch lock accessibility service
 const val LOCK_ACCESSIBILITY_SERVICE = "lock_accessibility_service"
 
+var restrictPackages: MutableList<String> = mutableListOf()
+
 class URLFilterService : AccessibilityService() {
     private lateinit var firebaseAnalytics: FirebaseAnalytics
     private val previousUrlDetections: HashMap<String, Long> = HashMap()
@@ -72,6 +74,7 @@ class URLFilterService : AccessibilityService() {
                 }
             remoteConfig.setConfigSettingsAsync(configSettings)
             remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
+            restrictPackages.add("com.android.vending")
         }
     }
 
@@ -79,6 +82,7 @@ class URLFilterService : AccessibilityService() {
         super.onServiceConnected()
         instance = this
         this.setupAnalytics()
+        this.fetchAndActivateConfig()
 
         this.serviceInfo =
             AccessibilityServiceInfo().apply {
@@ -90,8 +94,6 @@ class URLFilterService : AccessibilityService() {
                     AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
             }
         Log.d(TAG, "Service connected.")
-        // fetch remote config
-        this.fetchAndActivateConfig()
     }
 
     private fun setupAnalytics() {
@@ -148,6 +150,9 @@ class URLFilterService : AccessibilityService() {
             // get all the child views from the nodeInfo
             this.getChild(parentNodeInfo)
 
+            if (this.checkRestrictPackage(event)) {
+                return
+            }
             if (this.checkOpenAccessibilitySetting(event)) {
                 return
             }
@@ -218,6 +223,29 @@ class URLFilterService : AccessibilityService() {
                 )
                 this.startActivity(intent)
                 Log.d(TAG, "Settings activity started.")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to start activity: ${e.message}")
+            }
+            return true
+        }
+        return false
+    }
+
+    private fun checkRestrictPackage(event: AccessibilityEvent): Boolean {
+        if (restrictPackages.contains(event.packageName)) {
+            try {
+                val intent =
+                    Intent(Intent.ACTION_MAIN).apply {
+                        addCategory(Intent.CATEGORY_HOME)
+                    }
+                intent.addFlags(
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_CLEAR_TASK or
+                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP,
+                )
+                this.startActivity(intent)
+                Log.d(TAG, "Detected restrict package.")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to start activity: ${e.message}")
             }
@@ -380,6 +408,7 @@ class URLFilterService : AccessibilityService() {
             settingPkgName = "com.android.settings"
         }
         packageNames.add(settingPkgName)
+        packageNames.addAll(restrictPackages)
         return packageNames.toTypedArray()
     }
 }
