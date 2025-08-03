@@ -188,7 +188,7 @@ class URLFilterService : AccessibilityService() {
             if (changeTypes == AccessibilityEvent.CONTENT_CHANGE_TYPE_SUBTREE ||
                 changeTypes == AccessibilityEvent.CONTENT_CHANGE_TYPE_TEXT
             ) {
-                if (delta >= 500) {
+                if (delta >= 300) {
                     val remoteConfig = Firebase.remoteConfig
                     remoteConfig.activate()
                     previousUrlDetections[detectionId] = eventTime
